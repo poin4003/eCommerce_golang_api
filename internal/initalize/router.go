@@ -1,6 +1,7 @@
 package initalize
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/poin4003/eCommerce_golang_api/global"
 	"github.com/poin4003/eCommerce_golang_api/internal/routers"
@@ -22,6 +23,12 @@ func InitRouter() *gin.Engine {
 	//r.Use() // logging
 	//r.Use() // cross
 	//r.Use() // limiter global
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins: true,                                                // Cho phép tất cả các origin
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Cho phép các phương thức HTTP
+		AllowHeaders:    []string{"Origin", "Content-Type", "Authorization"}, // Cho phép các header cụ thể
+		ExposeHeaders:   []string{"Content-Length"},
+	}))
 	managerRouter := routers.RouterGroupApp.Manager
 	userRouter := routers.RouterGroupApp.User
 

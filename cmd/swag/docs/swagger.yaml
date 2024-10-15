@@ -1,0 +1,71 @@
+basePath: /v1/2024
+definitions:
+  model.RegisterInput:
+    properties:
+      verify_key:
+        type: string
+      verify_purpose:
+        type: string
+      verify_type:
+        type: integer
+    type: object
+  response.ErrorResponseData:
+    properties:
+      code:
+        type: integer
+      detail: {}
+      error:
+        type: string
+    type: object
+  response.ResponseData:
+    properties:
+      code:
+        description: Status code
+        type: integer
+      data:
+        description: Data
+      message:
+        description: Status message
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact:
+    email: pchuy4003@gmail.com
+    name: TEAM pchuy
+    url: github.com/poin4003/eCommerce_golang_api
+  description: This is a sample server celler server
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/license/LICENSE-2.0.html
+  termsOfService: github.com/poin4003/eCommerce_golang_api
+  title: API Documentation Ecommerce Backend SHOPDEVGO
+  version: 1.0.0
+paths:
+  /user/register/:
+    post:
+      consumes:
+      - application/json
+      description: When user is registered send otp to email
+      parameters:
+      - description: payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisterInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ResponseData'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponseData'
+      summary: User Registration
+      tags:
+      - account management
+swagger: "2.0"

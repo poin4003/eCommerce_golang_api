@@ -2,12 +2,13 @@ package initalize
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 
 	"github.com/poin4003/eCommerce_golang_api/global"
 	"go.uber.org/zap"
 )
 
-func Run() {
+func Run() *gin.Engine {
 	// Load configuration
 	LoadConfig()
 	m := global.Config.Mysql
@@ -20,5 +21,5 @@ func Run() {
 
 	r := InitRouter()
 
-	r.Run(":8000")
+	return r
 }
