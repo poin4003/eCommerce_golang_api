@@ -3,6 +3,7 @@ package implement
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/poin4003/eCommerce_golang_api/global"
 	"github.com/poin4003/eCommerce_golang_api/internal/consts"
@@ -30,8 +31,54 @@ func NewUserLoginImplement(r *database.Queries) *sUserLogin {
 	}
 }
 
-func (s *sUserLogin) Login(ctx context.Context) error {
-	return nil
+func (s *sUserLogin) Login(
+	ctx context.Context,
+	in *model.LoginInput,
+) (codeResult int, out model.LoginOutput, err error) {
+	// 1.Check Userbase
+	userBase, err := s.r.GetOneUserInfo(ctx, in.UserAccount)
+	if err != nil {
+		return response.ErrCodeAuthFailed, out, err
+	}
+
+	// 2. Check password
+	if !crypto.MatchingPassword(userBase.UserPassword, in.UserPassword, userBase.UserSalt) {
+		return response.ErrCodeAuthFailed, out, fmt.Errorf("user password not match")
+	}
+
+	// 3. Check two-factor authentication
+	// 4. Update password time
+	go s.r.LoginUserBase(ctx, database.LoginUserBaseParams{
+		UserLoginIp:  sql.NullString{String: "127.0.0.1", Valid: true},
+		UserAccount:  in.UserAccount,
+		UserPassword: in.UserPassword,
+	})
+
+	// 5. Create UUID User
+	subToken := utils.GenerateCliTokenUUID(int(userBase.UserID))
+	log.Println("subToken:", subToken)
+
+	// 6. Get user_info table
+	infoUser, err := s.r.GetUser(ctx, uint64(userBase.UserID))
+	if err != nil {
+		return response.ErrCodeAuthFailed, out, err
+	}
+
+	// convert to json
+	infoUserJson, err := json.Marshal(infoUser)
+	if err != nil {
+		return response.ErrCodeAuthFailed, out, fmt.Errorf("Convert to json failed: %v", err)
+	}
+
+	// 7. Give jsonUser to redis with key = subToken
+	err = global.Rdb.Set(ctx, subToken, infoUserJson, time.Duration(consts.TIME_OTP_REGISTER)*time.Minute).Err()
+	if err != nil {
+		return response.ErrCodeAuthFailed, out, err
+	}
+
+	// 8. Create JWT token
+
+	return 200, out, nil
 }
 
 func (s *sUserLogin) Register(ctx context.Context, in *model.RegisterInput) (codeResult int, err error) {
