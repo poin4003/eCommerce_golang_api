@@ -5,19 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/segmentio/kafka-go"
 	"strings"
 	"time"
-
-	"github.com/segmentio/kafka-go"
 )
 
 var (
-	kafkaConsumer *kafka.Reader
 	kafkaProducer *kafka.Writer
 )
 
 const (
-	kafkaURL   = "127.0.0.1:9092"
+	kafkaURL   = "localhost:9092"
 	kafkaTopic = "user_topic_vip"
 )
 
@@ -49,6 +47,7 @@ type StockInfo struct {
 	Type    string `json:"type"`
 }
 
+// Market stock
 func newStock(msg, typeMsg string) *StockInfo {
 	s := StockInfo{}
 	s.Message = msg
@@ -59,42 +58,47 @@ func newStock(msg, typeMsg string) *StockInfo {
 
 func actionStock(c *gin.Context) {
 	s := newStock(c.Query("msg"), c.Query("type"))
-	body := map[string]interface{}{
-		"action": "action",
-		"info":   s,
-	}
+	body := make(map[string]interface{})
+	body["action"] = "action"
+	body["info"] = s
 
 	jsonBody, _ := json.Marshal(body)
 
+	// Create message
 	msg := kafka.Message{
 		Key:   []byte("action"),
 		Value: []byte(jsonBody),
 	}
 
-	if err := kafkaProducer.WriteMessages(context.Background(), msg); err != nil {
-		fmt.Printf("Error sending message: %v\n", err)
-		c.JSON(500, gin.H{"error": err.Error()})
+	// Write
+	err := kafkaProducer.WriteMessages(context.Background(), msg)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"err": err.Error(),
+		})
 		return
 	}
 
-	c.JSON(200, gin.H{"msg": "action Successfully"})
+	c.JSON(200, gin.H{
+		"err": "",
+		"msg": "action Successfully",
+	})
 }
 
-func RegisterConsumerATC(id int) {
-	kafkaGroupId := fmt.Sprintf("consumer-group-%d", id)
+// Wait to buy ATC
+func RegisterComsumerATC(id int) {
+	// Group consumer??
+	kafkaGroupId := fmt.Sprintf("consumer-group-%d", id) //"consumer-group-"
 	reader := getKafkaReader(kafkaURL, kafkaTopic, kafkaGroupId)
 	defer reader.Close()
 
-	fmt.Printf("Consumer(%d) connected to topic: %s\n", id, kafkaTopic)
-
+	fmt.Printf("Consumer(%d) Wait ATC session:\n", id)
 	for {
 		m, err := reader.ReadMessage(context.Background())
 		if err != nil {
-			fmt.Printf("Consumer(%d) error: %v\n", id, err)
-			continue
+			fmt.Printf("Consumer(%d) error: %v", id, err)
 		}
-		fmt.Printf("Consumer(%d), topic:%v, partition:%v, offset:%v, time:%d %s = %s\n",
-			id, m.Topic, m.Partition, m.Offset, m.Time.Unix(), string(m.Key), string(m.Value))
+		fmt.Printf("Consumer(%d), wait topic:%v, partition:%v, offset:%v, time:%d %s = %s\n", id, m.Topic, m.Partition, m.Offset, m.Time.Unix(), string(m.Key), string(m.Value))
 	}
 }
 
@@ -105,8 +109,11 @@ func main() {
 
 	r.POST("action/stock", actionStock)
 
-	go RegisterConsumerATC(1)
-	go RegisterConsumerATC(2)
+	// Register waiting
+	go RegisterComsumerATC(1)
+	go RegisterComsumerATC(2)
+	go RegisterComsumerATC(3)
+	go RegisterComsumerATC(4)
 
 	r.Run(":8999")
 }
