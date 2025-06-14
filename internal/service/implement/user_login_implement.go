@@ -12,9 +12,9 @@ import (
 	"github.com/poin4003/eCommerce_golang_api/internal/utils"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils/crypto"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils/random"
-	"github.com/poin4003/eCommerce_golang_api/internal/utils/sendto"
 	"github.com/poin4003/eCommerce_golang_api/pkg/response"
 	"github.com/redis/go-redis/v9"
+	"github.com/segmentio/kafka-go"
 	"log"
 	"strconv"
 	"strings"
@@ -128,10 +128,31 @@ func (s *sUserLogin) Register(ctx context.Context, in *model.RegisterInput) (cod
 	// 6. send OTP
 	switch in.VerifyType {
 	case consts.EMAIL:
-		err = sendto.SendTextEmailOtp([]string{in.VerifyKey}, consts.HOST_EMAIL, strconv.Itoa(otpNew))
+		//err = sendto.SendTextEmailOtp([]string{in.VerifyKey}, consts.HOST_EMAIL, strconv.Itoa(otpNew))
+		//if err != nil {
+		//	return response.ErrSendEmailOTP, err
+		//}
+		//err = sendto.SendEmailToJavaByAPI(strconv.Itoa(otpNew), in.VerifyKey, "otp-auth.html")
+
+		// Send otp via Kafka Java
+		body := make(map[string]interface{})
+		body["otp"] = otpNew
+		body["email"] = in.VerifyKey
+		bodyRequest, _ := json.Marshal(body)
+
+		message := kafka.Message{
+			Key:   []byte("otp-auth"),
+			Value: bodyRequest,
+			Time:  time.Now(),
+		}
+
+		err = global.KafkaProducer.WriteMessages(context.Background(), message)
 		if err != nil {
 			return response.ErrSendEmailOTP, err
 		}
+
+		fmt.Printf("SendEmailToJavaByAPI:%v\n", err)
+
 		// 7. save OTP to MySql
 		result, err := s.r.InsertOTPVerify(ctx, database.InsertOTPVerifyParams{
 			VerifyOtp:     strconv.Itoa(otpNew),

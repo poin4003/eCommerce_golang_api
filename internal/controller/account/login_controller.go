@@ -16,12 +16,12 @@ type cUserLogin struct {
 var Login = new(cUserLogin)
 
 func (c *cUserLogin) Login(ctx *gin.Context) {
-	err := service.UserLogin().Login(ctx)
-	if err != nil {
-		response.ErrorResponse(ctx, response.ErrCodeParamInvalid, err.Error())
-		return
-	}
-	response.SuccessResponse(ctx, response.ErrCodeSuccess, nil)
+	//_, _, err := service.UserLogin().Login(ctx)
+	//if err != nil {
+	//	response.ErrorResponse(ctx, response.ErrCodeParamInvalid, err.Error())
+	//	return
+	//}
+	//response.SuccessResponse(ctx, response.ErrCodeSuccess, nil)
 }
 
 // User Registraion documentation
