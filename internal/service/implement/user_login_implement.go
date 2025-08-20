@@ -5,6 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/poin4003/eCommerce_golang_api/global"
 	"github.com/poin4003/eCommerce_golang_api/internal/consts"
 	"github.com/poin4003/eCommerce_golang_api/internal/database"
@@ -12,13 +17,9 @@ import (
 	"github.com/poin4003/eCommerce_golang_api/internal/utils"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils/crypto"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils/random"
+	"github.com/poin4003/eCommerce_golang_api/internal/utils/sendto"
 	"github.com/poin4003/eCommerce_golang_api/pkg/response"
 	"github.com/redis/go-redis/v9"
-	"github.com/segmentio/kafka-go"
-	"log"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type sUserLogin struct {
@@ -67,7 +68,7 @@ func (s *sUserLogin) Login(
 	// convert to json
 	infoUserJson, err := json.Marshal(infoUser)
 	if err != nil {
-		return response.ErrCodeAuthFailed, out, fmt.Errorf("Convert to json failed: %v", err)
+		return response.ErrCodeAuthFailed, out, fmt.Errorf("convert to json failed: %v", err)
 	}
 
 	// 7. Give jsonUser to redis with key = subToken
@@ -95,7 +96,7 @@ func (s *sUserLogin) Register(ctx context.Context, in *model.RegisterInput) (cod
 	}
 
 	if userFound > 0 {
-		return response.ErrCodeUserHasExists, fmt.Errorf("user %s already exists", in.VerifyType)
+		return response.ErrCodeUserHasExists, fmt.Errorf("user %d already exists", in.VerifyType)
 	}
 
 	// 3. Create OTP
@@ -128,30 +129,34 @@ func (s *sUserLogin) Register(ctx context.Context, in *model.RegisterInput) (cod
 	// 6. send OTP
 	switch in.VerifyType {
 	case consts.EMAIL:
-		//err = sendto.SendTextEmailOtp([]string{in.VerifyKey}, consts.HOST_EMAIL, strconv.Itoa(otpNew))
-		//if err != nil {
-		//	return response.ErrSendEmailOTP, err
-		//}
-		//err = sendto.SendEmailToJavaByAPI(strconv.Itoa(otpNew), in.VerifyKey, "otp-auth.html")
-
-		// Send otp via Kafka Java
-		body := make(map[string]interface{})
-		body["otp"] = otpNew
-		body["email"] = in.VerifyKey
-		bodyRequest, _ := json.Marshal(body)
-
-		message := kafka.Message{
-			Key:   []byte("otp-auth"),
-			Value: bodyRequest,
-			Time:  time.Now(),
-		}
-
-		err = global.KafkaProducer.WriteMessages(context.Background(), message)
+		err = sendto.SendTextEmailOtp([]string{in.VerifyKey}, consts.HOST_EMAIL, strconv.Itoa(otpNew))
 		if err != nil {
 			return response.ErrSendEmailOTP, err
 		}
 
-		fmt.Printf("SendEmailToJavaByAPI:%v\n", err)
+		// err = sendto.SendEmailToJavaByAPI(strconv.Itoa(otpNew), in.VerifyKey, "otp-auth.html")
+		// if err != nil {
+		// 	return response.ErrSendEmailOTP, err
+		// }
+
+		// Send otp via Kafka Java
+		// body := make(map[string]interface{})
+		// body["otp"] = otpNew
+		// body["email"] = in.VerifyKey
+		// bodyRequest, _ := json.Marshal(body)
+
+		// message := kafka.Message{
+		// 	Key:   []byte("otp-auth"),
+		// 	Value: bodyRequest,
+		// 	Time:  time.Now(),
+		// }
+
+		// err = global.KafkaProducer.WriteMessages(context.Background(), message)
+		// if err != nil {
+		// 	return response.ErrSendEmailOTP, err
+		// }
+
+		// fmt.Printf("SendEmailToJavaByAPI:%v\n", err)
 
 		// 7. save OTP to MySql
 		result, err := s.r.InsertOTPVerify(ctx, database.InsertOTPVerifyParams{

@@ -3,7 +3,6 @@ package sendto
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -45,8 +44,5 @@ func SendEmailToJavaByAPI(otp string, email string, purpose string) error {
 		return err
 	}
 	defer resp.Body.Close()
-	return nil
-
-	fmt.Println("Response status: ", resp.Status)
 	return nil
 }
