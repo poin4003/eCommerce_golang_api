@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/poin4003/eCommerce_golang_api/internal/model"
 )
 
@@ -11,6 +12,13 @@ type (
 		Register(ctx context.Context, in *model.RegisterInput) (codeResult int, err error)
 		VerifyOTP(ctx context.Context, in *model.VerifyInput) (out model.VerifyOTPOutput, err error)
 		UpdatePasswordRegister(ctx context.Context, token string, password string) (userId int, err error)
+
+		// two-factor authentication
+		IsTwoFactorEnabled(ctx context.Context, userId int) (codeResult int, rs bool, err error)
+		// setup authentication
+		SetupTwoFactorAuth(ctx context.Context, in *model.SetupTwoFactorAuthInput) (codeResult int, err error)
+		// Verify Two factor authentication
+		VerifyTwoFactorAuth(ctx context.Context, in *model.TwoFactorVerificationAuthInput) (codeResult int, err error)
 	}
 
 	IUserInfo interface {

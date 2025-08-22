@@ -33,6 +33,21 @@ func NewUserLoginImplement(r *database.Queries) *sUserLogin {
 	}
 }
 
+// --- TWO FACTOR AUTHEN ----
+func (s *sUserLogin) IsTwoFactorEnabled(ctx context.Context, userId int) (codeResult int, rs bool, err error) {
+	return 200, true, nil
+}
+
+func (s *sUserLogin) SetupTwoFactorAuth(ctx context.Context, in *model.SetupTwoFactorAuthInput) (codeResult int, err error) {
+	return 200, nil
+}
+
+func (s *sUserLogin) VerifyTwoFactorAuth(ctx context.Context, in *model.TwoFactorVerificationAuthInput) (codeResult int, err error) {
+	return 200, nil
+}
+
+// --- END TWO FACTOR AUTHEN ---
+
 func (s *sUserLogin) Login(
 	ctx context.Context,
 	in *model.LoginInput,
@@ -49,6 +64,7 @@ func (s *sUserLogin) Login(
 	}
 
 	// 3. Check two-factor authentication
+
 	// 4. Update password time
 	go s.r.LoginUserBase(ctx, database.LoginUserBaseParams{
 		UserLoginIp:  sql.NullString{String: "127.0.0.1", Valid: true},
