@@ -15,13 +15,29 @@ type cUserLogin struct {
 // management container Login User
 var Login = new(cUserLogin)
 
+// User login documentation
+// @Summary User godoc
+// @Description When user want to login
+// @Tags account management
+// @Accept json
+// @Produce json
+// @Param payload body model.LoginInput true "payload"
+// @Success 200 {object} response.ResponseData
+// @Failure 500 {object} response.ErrorResponseData
+// @Router /user/login/ [post]
 func (c *cUserLogin) Login(ctx *gin.Context) {
-	//_, _, err := service.UserLogin().Login(ctx)
-	//if err != nil {
-	//	response.ErrorResponse(ctx, response.ErrCodeParamInvalid, err.Error())
-	//	return
-	//}
-	//response.SuccessResponse(ctx, response.ErrCodeSuccess, nil)
+	var params model.LoginInput
+	if err := ctx.ShouldBindJSON(&params); err != nil {
+		response.ErrorResponse(ctx, response.ErrCodeParamInvalid, err.Error())
+		return
+	}
+
+	codeRs, dataRs, err := service.UserLogin().Login(ctx, &params)
+	if err != nil {
+		response.ErrorResponse(ctx, response.ErrCodeParamInvalid, err.Error())
+		return
+	}
+	response.SuccessResponse(ctx, codeRs, dataRs)
 }
 
 // User Registraion documentation

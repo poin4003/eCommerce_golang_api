@@ -15,6 +15,7 @@ import (
 	"github.com/poin4003/eCommerce_golang_api/internal/database"
 	"github.com/poin4003/eCommerce_golang_api/internal/model"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils"
+	"github.com/poin4003/eCommerce_golang_api/internal/utils/auth"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils/crypto"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils/random"
 	"github.com/poin4003/eCommerce_golang_api/internal/utils/sendto"
@@ -78,6 +79,10 @@ func (s *sUserLogin) Login(
 	}
 
 	// 8. Create JWT token
+	out.Token, err = auth.CreateToken(subToken)
+	if err != nil {
+		return
+	}
 
 	return 200, out, nil
 }

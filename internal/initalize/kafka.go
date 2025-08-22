@@ -1,9 +1,10 @@
 package initalize
 
 import (
+	"log"
+
 	"github.com/poin4003/eCommerce_golang_api/global"
 	"github.com/segmentio/kafka-go"
-	"log"
 )
 
 // Init Kafka Producer
