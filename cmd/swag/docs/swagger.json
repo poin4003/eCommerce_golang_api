@@ -145,6 +145,53 @@
                 }
             }
         },
+        "/user/two_factor/verify": {
+            "post": {
+                "description": "When user want verify two factor authentication and setup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account 2fa"
+                ],
+                "summary": "setup verify two factor authentication godoc",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.TwoFactorVerificationAuthInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ResponseData"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponseData"
+                        }
+                    }
+                }
+            }
+        },
         "/user/update_pass_register/": {
             "post": {
                 "description": "Update password register",
@@ -259,6 +306,17 @@
                     "type": "string"
                 },
                 "two_factor_email": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.TwoFactorVerificationAuthInput": {
+            "type": "object",
+            "properties": {
+                "two_factor_code": {
                     "type": "string"
                 },
                 "user_id": {

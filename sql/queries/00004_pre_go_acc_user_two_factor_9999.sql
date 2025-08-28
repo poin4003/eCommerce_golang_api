@@ -93,4 +93,4 @@ SELECT two_factor_id, user_id, two_factor_auth_type, two_factor_auth_secret,
     two_factor_phone, two_factor_email,
     two_factor_is_active, two_factor_created_at, two_factor_updated_at
 FROM pre_go_acc_user_two_factor_9999
-WHERE user_id = ? AND two_factor_id = ?;
+WHERE user_id = ? AND two_factor_auth_type = ?;

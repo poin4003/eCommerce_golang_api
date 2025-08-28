@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/poin4003/eCommerce_golang_api/internal/controller/account"
 	"github.com/poin4003/eCommerce_golang_api/internal/middlewares"
-	//"github.com/poin4003/eCommerce_golang_api/internal/wire"
 )
 
 type UserRouter struct{}
@@ -25,5 +24,6 @@ func (pr *UserRouter) InitUserRouter(Router *gin.RouterGroup) {
 	{
 		userRouterPrivate.GET("/get_info")
 		userRouterPrivate.POST("/two_factor/setup", account.TwoFA.SetupTwoFactorAuth)
+		userRouterPrivate.POST("/two_factor/verify", account.TwoFA.VerifyTwoFactorAuth)
 	}
 }
