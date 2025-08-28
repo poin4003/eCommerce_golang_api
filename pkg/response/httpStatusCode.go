@@ -12,10 +12,14 @@ const (
 
 	// Register Code
 	ErrCodeUserHasExists = 50001 // user has already registered
+	ErrCodeUserNotExists = 50002
 
 	// Err Login
 	ErrCodeOtpNotExists     = 60009
 	ErrCodeUserOtpNotExists = 60008
+
+	// Two factor Authentication
+	ErrCodeTwoFactorAuthSetupFailed = 80001
 )
 
 var msg = map[int]string{
@@ -28,7 +32,10 @@ var msg = map[int]string{
 	ErrCodeAuthFailed: "Auth failed",
 
 	ErrCodeUserHasExists: "User has already registered",
+	ErrCodeUserNotExists: "User not exist",
 
 	ErrCodeOtpNotExists:     "Otp exist but not registered",
 	ErrCodeUserOtpNotExists: "OTP not exists",
+
+	ErrCodeTwoFactorAuthSetupFailed: "Setup two factor authentication failed",
 }

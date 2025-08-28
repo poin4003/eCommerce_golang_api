@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -41,4 +42,36 @@ func CreateToken(uuidToken string) (string, error) {
 			Subject:   uuidToken,
 		},
 	})
+}
+
+func ParseJwtTokenSubject(token string) (*jwt.StandardClaims, error) {
+	tokenClaims, err := jwt.ParseWithClaims(token, &jwt.StandardClaims{}, func(jwtToken *jwt.Token) (interface{}, error) {
+		return []byte(global.Config.JWT.API_SECRET_KEY), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if tokenClaims == nil {
+		return nil, fmt.Errorf("token is nil")
+	}
+
+	if claims, ok := tokenClaims.Claims.(*jwt.StandardClaims); ok && tokenClaims.Valid {
+		return claims, nil
+	}
+
+	return nil, fmt.Errorf("invalid token")
+}
+
+// validate token
+func VerifyTokenSubject(token string) (*jwt.StandardClaims, error) {
+	claims, err := ParseJwtTokenSubject(token)
+	if err != nil {
+		return nil, err
+	}
+	if err = claims.Valid(); err != nil {
+		return nil, err
+	}
+	return claims, nil
 }

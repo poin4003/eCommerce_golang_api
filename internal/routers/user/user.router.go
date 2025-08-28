@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/poin4003/eCommerce_golang_api/internal/controller/account"
+	"github.com/poin4003/eCommerce_golang_api/internal/middlewares"
 	//"github.com/poin4003/eCommerce_golang_api/internal/wire"
 )
 
@@ -10,7 +11,6 @@ type UserRouter struct{}
 
 func (pr *UserRouter) InitUserRouter(Router *gin.RouterGroup) {
 	// Public router
-
 	userRouterPublic := Router.Group("/user")
 	{
 		userRouterPublic.POST("/register", account.Login.Register)
@@ -20,11 +20,10 @@ func (pr *UserRouter) InitUserRouter(Router *gin.RouterGroup) {
 	}
 
 	// Private router
-	//userRouterPrivate := Router.Group("/user")
-	//userRouterPrivate.USE(limmiter())
-	//userRouterPrivate.USE(Authen())
-	//userRouterPrivate.Use(Permissions())
-	//{
-	//	userRouterPrivate.GET("/get_info")
-	//}
+	userRouterPrivate := Router.Group("/user")
+	userRouterPrivate.Use(middlewares.AuthenMiddleware())
+	{
+		userRouterPrivate.GET("/get_info")
+		userRouterPrivate.POST("/two_factor/setup", account.TwoFA.SetupTwoFactorAuth)
+	}
 }
